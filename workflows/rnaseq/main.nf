@@ -106,22 +106,25 @@ workflow RNASEQ {
 
     //
     // Create channel from input file provided through params.input
-    //
-    Channel
-        .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-        .map {
-            meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
-                } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                }
-        }
-        .groupTuple()
-        .map { samplesheet ->
-            checkSamplesAfterGrouping(samplesheet)
-        }
-        .set { ch_fastq }
+    samplesheet = Channel.fromPath(params.input, checkIfExists: true)
+
+    // Check if the sample sheet contains a 'bam' column
+    def has_bam_column = samplesheet.map { it.text.contains("bam") }.first()
+
+    // Branch the input based on whether it's a BAM or FASTQ
+    samplesheet.branch { 
+        bam_input: has_bam_column
+        fastq_input: !has_bam_column
+    }
+    .set { input_channels }
+
+    // If the input is BAM, convert it to FASTQ
+    if (input_channels.bam_input) {
+        BAM_TO_FASTQ(input_channels.bam_input)
+        ch_fastq = BAM_TO_FASTQ.out
+    } else {
+        ch_fastq = input_channels.fastq_input
+    }
 
     //
     // Run RNA-seq FASTQ preprocessing subworkflow

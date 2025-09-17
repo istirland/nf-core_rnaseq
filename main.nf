@@ -40,6 +40,7 @@ include { PREPARE_GENOME          } from './subworkflows/local/prepare_genome'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_rnaseq_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_rnaseq_pipeline'
 include { checkMaxContigSize      } from './subworkflows/local/utils_nfcore_rnaseq_pipeline'
+include { BAM_TO_FASTQ            } from './subworkflows/local/bam_to_fastq'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
